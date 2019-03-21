@@ -1,9 +1,11 @@
 import { GET_EVENTS_BEGIN,
   POST_EVENT_BEGIN,
+  apiFailure,
   getEventsSuccess,
   postEventSuccess,
+  editEventSuccess,
   DELETE_EVENT_BEGIN,
-  GET_OUTLOOK_EVENTS_BEGIN, 
+  GET_OUTLOOK_EVENTS_BEGIN,
   CLEAR_ALL_EVENTS,
   EDIT_EVENT_BEGIN,
   getEventsFailure,
@@ -19,10 +21,11 @@ import { loadClient,
   loadSyncCalendar,
   loadNextPage,
   postGoogleEvent,
-  deleteGoogleEvent
+  deleteGoogleEvent,
+  editGoogleEvent
 } from '../utils/client/google';
 
-import * as Providers from '../utils/constants'; 
+import * as Providers from '../utils/constants';
 
 import { Client } from '@microsoft/microsoft-graph-client';
 import { getUserEvents,getAccessToken,filterEventToOutlook } from '../utils/client/outlook';
@@ -32,9 +35,9 @@ import * as RxDB from 'rxdb';
 
 export const beginGetEventsEpics = action$ => action$.pipe(
   ofType(GET_EVENTS_BEGIN),
-  mergeMap(action => iif(() => action.payload !== undefined, 
+  mergeMap(action => iif(() => action.payload !== undefined,
     from(loadClient()).pipe(
-      mergeMap(() => { 
+      mergeMap(() => {
         return from(setCalendarRequest()).pipe(
           mergeMap(resp => from(eventsPromise(resp)).pipe(
             map((resp) => {
@@ -42,7 +45,7 @@ export const beginGetEventsEpics = action$ => action$.pipe(
             })
           )
           )
-        );}  
+        );}
       )
     ),
     of(getEventsFailure("Google user undefined!!"))
@@ -50,28 +53,39 @@ export const beginGetEventsEpics = action$ => action$.pipe(
   )
 );
 
+export const beginEditEventEpics = action$ => action$.pipe(
+  ofType(EDIT_EVENT_BEGIN),
+  mergeMap(action => from(editEvent(action.payload)).pipe(
+     map(resp => editEventSuccess(resp),
+     catchError(error => apiFailure(error))
+  )
+ )
+)
+);
+
+const editEvent = async (payload) => {
+  let calendarObject = payload.data;
+  const id = payload.id;
+  await loadClient();
+  return editGoogleEvent(id, calendarObject);
+}
+
 export const beginPostEventEpics = action$ => action$.pipe(
   ofType(POST_EVENT_BEGIN),
   mergeMap(action => {
     if(action.payload.providerType === Providers.GOOGLE) {
       return from(postEvent(action.payload)).pipe(
-        map(resp => postEventSuccess([resp.result],action.payload.providerType))
+        map(resp => postEventSuccess([resp.result],action.payload.providerType)),
+        catchError(error => apiFailure(error))
       );
     } else if(action.payload.providerType === Providers.OUTLOOK) {
       return from(postEventsOutlook(action.payload)).pipe(
-        map(resp => postEventSuccess([resp],action.payload.providerType))
+        map(resp => postEventSuccess([resp],action.payload.providerType)),
+        catchError(error => apiFailure(error))
       );
     }
   })
 );
-
-// export const beginEditEventEpics = action$ => action$.pipe(
-//   ofType(EDIT_EVENT_BEGIN),
-//   mergeMap(action => from(editEvent(action.payload)).pipe(
-//      map(resp => editEventSuccess([resp.result]))
-//   )
-//  )
-// )
 
 // export const deleteEventEpics = action$ => action$.pipe(
 //   ofType(DELETE_EVENT_BEGIN),
@@ -103,7 +117,7 @@ const postEventsOutlook = (payload) => {
           }
         });
 
-        // This first select is to choose from the list of calendars 
+        // This first select is to choose from the list of calendars
         resolve(client
           .api('/me/calendars/AAMkAGZlZDEyNmMxLTMyNDgtNDMzZi05ZmZhLTU5ODk3ZjA5ZjQyOABGAAAAAAA-XPNVbhVJSbREEYK0xJ3FBwCK0Ut7mQOxT5W1Wd82ZSuqAAAAAAEGAACK0Ut7mQOxT5W1Wd82ZSuqAAGfLM-yAAA=/events')
           .post(filterEventToOutlook(payload.data)));
@@ -172,7 +186,7 @@ const fetchEvents = (resp, items, resolve, reject) => {
 // ------------------------------------ OUTLOOK ------------------------------------ //
 export const beginGetOutlookEventsEpics = action$ => action$.pipe(
   ofType(GET_OUTLOOK_EVENTS_BEGIN),
-  mergeMap(action => 
+  mergeMap(action =>
     from(new Promise((resolve, reject) => {
       if(action.payload === undefined) {
         reject(getEventsFailure("Outlook user undefined!!"));

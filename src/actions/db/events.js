@@ -3,7 +3,7 @@ export const FAIL_STORE_EVENTS = 'FAIL_STORE_EVENTS';
 export const RETRIEVE_STORED_EVENTS = 'RETRIEVE_STORED_EVENTS';
 export const SUCCESS_STORED_EVENTS = 'SUCCESS_STORED_EVENTS';
 export const UPDATE_STORED_EVENTS = 'UPDATE_STORED_EVENTS';
-export const DELETE_EVENT_BEGIN_DB = 'DELETE_EVENT_BEGIN_DB';
+export const DELETE_EVENT_BEGIN_DB = 'DELETE_EVENT_BEGIN_DB'
 
 export const DUPLICATE_ACTION = 'DUPLICATE_ACTION';
 
@@ -12,7 +12,7 @@ export const failStoringEvents = () => ({
 });
 export const retrieveStoreEvents = (providerType) => ({
   type: RETRIEVE_STORED_EVENTS,
-  providerType: providerType
+  payload: providerType
 });
 
 export const updateStoredEvents = (resp) => ({

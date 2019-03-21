@@ -79,7 +79,7 @@
 
 // export default eventSchema;
 
-const eventSchema = {
+export default {
   "title": "Event schema",
   "version": 0,
   "description": "Describes a calendar event",
@@ -222,6 +222,9 @@ const eventSchema = {
     "calenderId": {
       "type": "number"
     },
+    "hangoutLink": {
+      "type": "string"
+    },
     "source": {
       "type": "object",
       "properties": {
@@ -235,10 +238,8 @@ const eventSchema = {
     },
     "providerType": {
       "type": "string"
-    }
+    },
     // ----------------------------------------------- //
   },
   "required": ["end", "start"]
 };
-
-export default eventSchema;

@@ -1,10 +1,10 @@
 export default {
-  "title": "CalMetaData schema",
+  "title": "EventPerson Schema",
   "version": 0,
-  "description": "Describes a Calendar Meta Data object",
+  "description": "Describes a Event and a Person",
   "type": "object",
   "properties": {
-    "calMetaDataId": {
+    "eventPersonId": {
       "type": "string",
       "primary": true,
     },

@@ -10,7 +10,8 @@ import SignupSyncLink from './SignupSyncLink';
 
 // import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_SCOPE } from '../utils/client/google';
 
-import { transport, Credentials, createAccount } from "dav/dav";
+// import { transport, Credentials, createAccount } from "dav/dav";
+
 
 const localizer = BigCalendar.momentLocalizer(moment);
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
@@ -62,13 +63,13 @@ export default class View extends React.Component {
 
 
     const db = await getDb();
-    db.provider_users.find().exec().then(providerUserData => { 
+    db.persons.find().exec().then(providerUserData => {
       providerUserData.map((singleProviderUserData) => {
 
         var now = new Date().getTime();
         // var now = 1552437629100;
         var isExpired = now > parseInt(singleProviderUserData.accessTokenExpiry);
-        
+
         // console.log(singleProviderUserData,this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
         // console.log(now,singleProviderUserData.accessTokenExpiry,isExpired,providerUserData);
         // console.log(singleProviderUserData.providerType + " is " + (isExpired ? "expired!" : "not expired!"));
@@ -156,10 +157,10 @@ export default class View extends React.Component {
     });
   }
 
-  // This filter user is used when the outlook first creates the object. 
+  // This filter user is used when the outlook first creates the object.
   // It takes the outlook user object, and map it to the common schema defined in db/person.js
   filterUserOnStart = (rxDoc, providerType) => {
-    return { 
+    return {
       user: {
         personId: rxDoc.personId,
         originalId: rxDoc.originalId,
@@ -244,53 +245,32 @@ export default class View extends React.Component {
 
     return (
       <div>
-        {/* this is for out of sync tokens. */}
-        {providers}
 
-        <a>
-          <button className="btn btn-block btn-social"
-            onClick={() => this.authorizeGoogleCodeRequest()}>
-            <span className="fa fa-outlook"></span>
-              Sign in with Google
-          </button>
+      {/* this is for out of sync tokens. */}
+      {providers}
+      <a className="waves-effect waves-light btn"
+          onClick={() => this.authorizeGoogleCodeRequest()}>
+       <i className="material-icons left">cloud</i>Sign in with Google</a>
+       <a className="waves-effect waves-light btn"
+           onClick={() => this.authorizeOutLookCodeRequest()}>
+        <i className="material-icons left">cloud</i>Sign in with Outlook</a>
+        <a className="waves-effect waves-light btn"
+        // onClick={() => this.props.beginGetGoogleEvents()}>
 
-          <button className="btn btn-block btn-social"
-            onClick={() => this.authorizeOutLookCodeRequest()}>
-            <span className="fa fa-outlook"></span>
-              Sign in with Outlook
-          </button>
-        </a>
-        <button className="btn btn-block btn-social"
-          // onClick={() => this.props.beginGetGoogleEvents()}>
+        // This is suppose to allow us to sync multiple user per single provider in the future!!
+        // Currently, due to no UI, I am hardcoding it to a single instance. But once we get the
+        // UI up and running for choosing which user events you want to get, this will be amazing
+        // Note: This is the same for the following button, which pulls outlook events.
 
-          // This is suppose to allow us to sync multiple user per single provider in the future!! 
-          // Currently, due to no UI, I am hardcoding it to a single instance. But once we get the 
-          // UI up and running for choosing which user events you want to get, this will be amazing
-          // Note: This is the same for the following button, which pulls outlook events.
-
-          // Okay, debate later, coz idk how to deal with it when the user signs in, to update this state here. 
-          onClick={() => { 
-            // console.log(this.state.temp_googleUser); 
-            // this.props.beginGetGoogleEvents();}}>
-            this.props.beginGetGoogleEvents(this.props.providers["GOOGLE"][0]);}}>
-          <span className="fa fa-google"></span>
-              Get Google Events
-        </button>
-
-        <button className="btn btn-block btn-social"
-          onClick={() => { 
-            this.props.beginGetOutlookEvents(this.props.providers["OUTLOOK"][0]);}
-          }>
-          <span className="fa fa-google"></span>
-              Get Outlook Events
-        </button>
-
-        <button className="btn btn-block btn-social"
-          onClick={() => this.props.clearAllEvents()}>
-          <span className="fa fa-google"></span>
-              Clear all Events
-        </button>
-      </div>
+        // Okay, debate later, coz idk how to deal with it when the user signs in, to update this state here.
+            onClick={() => this.props.beginGetGoogleEvents(this.props.providers["GOOGLE"][0])}>
+         <i className="material-icons left">cloud_download</i>Get Google Events</a>
+         <a className="waves-effect waves-light btn"
+             onClick={() => this.props.beginGetOutlookEvents(this.props.providers["OUTLOOK"][0])}>
+          <i className="material-icons left">cloud_download</i>Get Outlook Events</a>
+          <a className="waves-effect waves-light btn"
+              onClick={() => this.props.clearAllEvents()}>
+           <i className="material-icons left">close</i>Clear all Events</a>      </div>
     );
   }
 

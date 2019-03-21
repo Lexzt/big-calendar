@@ -1,4 +1,5 @@
 import React from 'react';
+import M from 'materialize-css';
 
 export default const titleBox = ({ start }) => {
   return(

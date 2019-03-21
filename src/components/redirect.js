@@ -54,7 +54,7 @@ class OutLookRedirect extends React.Component {
               const db = await getDb();
               const filteredSchemaUser = filterUser(res, accessToken, expireDate.getTime());
 
-              const doc = await db.provider_users.upsert(filteredSchemaUser);
+              const doc = await db.persons.upsert(filteredSchemaUser);
               console.log(doc);
 
               this.props.successOutlookAuth({ user: filteredSchemaUser });

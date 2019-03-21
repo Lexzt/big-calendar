@@ -1,6 +1,6 @@
-import { map, 
-  mergeMap, 
-  // switchMap, 
+import { map,
+  mergeMap,
+  // switchMap,
   catchError } from 'rxjs/operators';
 import { ofType } from 'redux-observable';
 import { from } from 'rxjs';
@@ -31,7 +31,7 @@ export const retrieveEventsEpic = action$ => action$.pipe(
   mergeMap((action) => from(getDb()).pipe(
     mergeMap(db => from(db.events.find().exec()).pipe(
       map(events => events.filter(singleEvent => {
-        return singleEvent.providerType === action.providerType;
+        return singleEvent.providerType === action.payload;
       })),
       map(events => events.map(singleEvent => {
         return {
@@ -84,7 +84,6 @@ const storeEvents = async (payload) => {
   const db = await getDb();
   const addedEvents = [];
   const data = payload.data;
-
   for(let dbEvent of data) {
     // #TO-DO, we need to figure out how to handle recurrence, for now, we ignore
     if(dbEvent.recurringEventId !== undefined && dbEvent.recurringEventId !== null) {
@@ -93,7 +92,6 @@ const storeEvents = async (payload) => {
 
     let filteredEvent = Providers.filterIntoSchema(dbEvent, payload.providerType);
     filteredEvent['providerType'] = payload.providerType;
-
     try {
       await db.events.upsert(filteredEvent);
     }
