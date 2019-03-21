@@ -44,7 +44,7 @@ export default class View extends React.Component {
   }
 
   async componentDidMount() {
-    //// This doesn't work fml. LOL
+    // // This doesn't work fml. LOL
     // console.log("here",transport);
     // var xhr = new transport.Basic(
     //   new Credentials({
