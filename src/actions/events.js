@@ -97,7 +97,9 @@ export const getOutlookEventsSuccess = (response) => ({
     data: response,
   }
 });
+// ---------------------- OUTLOOK ---------------------- //
 
+// ---------------------- EDIT EVENTS ---------------------- //
 export const editEventBegin = (id, eventObject) => ({
   type: EDIT_EVENT_BEGIN,
   payload: {
@@ -119,12 +121,33 @@ export const apiFailure = (error) => ({
     error
   }
 })
-// ---------------------- OUTLOOK ---------------------- //
+// ---------------------- EDIT EVENTS ---------------------- //
+
+// ---------------------- EXCHANGE ---------------------- //
+export const GET_EXCHANGE_EVENTS_BEGIN = 'GET_EXCHANGE_EVENTS_BEGIN';
+export const GET_EXCHANGE_EVENTS_SUCCESS = 'GET_EXCHANGE_EVENTS_SUCCESS';
+export const GET_EXCHANGE_EVENTS_FAILURE = 'GET_EXCHANGE_EVENTS_FAILURE';
+
+export const beginGetExchangeEvents = (resp) => ({
+  type: GET_EXCHANGE_EVENTS_BEGIN,
+  payload: resp
+});
+
+export const getExchangeEventsSuccess = (resp) => ({
+  type: GET_EXCHANGE_EVENTS_SUCCESS,
+  payload: resp
+});
+// ---------------------- EXCHANGE ---------------------- //
 
 // ---------------------- GENERAL ---------------------- //
 export const CLEAR_ALL_EVENTS = 'CLEAR_ALL_EVENTS';
+export const SUCCESS_CLEAR_ALL_EVENTS = 'SUCCESS_CLEAR_ALL_EVENTS';
 
 export const clearAllEvents = () => ({
   type: CLEAR_ALL_EVENTS,
+});
+
+export const clearAllEventsSuccess = () => ({
+  type: SUCCESS_CLEAR_ALL_EVENTS,
 });
 // ---------------------- GENERAL ---------------------- //

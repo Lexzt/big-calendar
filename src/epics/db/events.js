@@ -31,7 +31,7 @@ export const retrieveEventsEpic = action$ => action$.pipe(
   mergeMap((action) => from(getDb()).pipe(
     mergeMap(db => from(db.events.find().exec()).pipe(
       map(events => events.filter(singleEvent => {
-        return singleEvent.providerType === action.payload;
+        return singleEvent.providerType === action.providerType;
       })),
       map(events => events.map(singleEvent => {
         return {

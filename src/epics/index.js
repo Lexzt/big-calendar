@@ -8,12 +8,18 @@ import {
 import {
   beginGetEventsEpics,
   beginGetOutlookEventsEpics,
+  beginGetExchangeEventsEpics,
   beginPostEventEpics,
   clearAllEventsEpics,
 } from './events';
 import {
   storeEventPersonEpic
 } from './db/eventPersons';
+import {
+  storeGoogleAuthEpic,
+  storeOutLookAuthEpic,
+  storeExchangeAuthEpic
+} from './db/auth';
 
 export const rootEpic = combineEpics(
   retrieveEventsEpic,
@@ -21,7 +27,11 @@ export const rootEpic = combineEpics(
   beginStoreEventsEpic,
   beginGetEventsEpics,
   beginGetOutlookEventsEpics,
+  beginGetExchangeEventsEpics,
   beginPostEventEpics,
   deleteEventEpics,
   clearAllEventsEpics,
+  storeGoogleAuthEpic,
+  storeOutLookAuthEpic,
+  storeExchangeAuthEpic,
 );

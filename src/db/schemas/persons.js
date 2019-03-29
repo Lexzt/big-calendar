@@ -22,6 +22,9 @@ export default {
     },
     "accessTokenExpiry" : {
       "type": "number"
+    },
+    "password" : {
+      "type": "string"
     }
   },
   "required": [

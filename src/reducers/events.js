@@ -12,6 +12,7 @@ const initialState = {
 const mergeEvents = (oldEvents, newItems) => {
   let oldIds = oldEvents.map(item => item.id);
   let newPayload = [...oldEvents];
+  
   for(let newItem of newItems) {
     if(!oldIds.includes(newItem.id)) {
       newPayload.push(newItem);

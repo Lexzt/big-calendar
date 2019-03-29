@@ -35,3 +35,19 @@ export const expiredOutlookAuth = (user) => ({
   payload: user
 });
 // --------------------- OUTLOOK AUTH -------------------- //
+
+// --------------------- EXCHANGE AUTH -------------------- //
+export const BEGIN_EXCHANGE_AUTH = 'BEGIN_EXCHANGE_AUTH';
+export const SUCCESS_EXCHANGE_AUTH = 'SUCCESS_EXCHANGE_AUTH';
+export const FAIL_EXCHANGE_AUTH = 'FAIL_EXCHANGE_AUTH';
+
+export const beginExchangeAuth = (user) => ({ 
+  type: BEGIN_EXCHANGE_AUTH,
+  payload: user
+});
+export const failExchangeAuth = () => ({ type: FAIL_EXCHANGE_AUTH });
+export const successExchangeAuth = (user) => ({ 
+  type: SUCCESS_EXCHANGE_AUTH,
+  payload: user
+});
+// --------------------- EXCHANGE AUTH -------------------- //

@@ -27,8 +27,6 @@ export const createDb = async () => {
   return db;
 };
 
-
-
 export default () => {
   //RxDB.removeDatabase('eventsdb', 'idb');
   if(!dbPromise) {

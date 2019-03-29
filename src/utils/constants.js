@@ -3,6 +3,7 @@ import md5 from 'md5';
 
 export const OUTLOOK = 'OUTLOOK';
 export const GOOGLE = 'GOOGLE';
+export const EXCHANGE = 'EXCHANGE'
 
 export const dropDownTime = (currentTime) => {
   const timeOptions = [];
@@ -43,6 +44,7 @@ export const momentAdd = (day, time) => {
 }
 
 export const filterIntoSchema = (dbEvent, type) => {
+  var schemaCastedDbObject = {};
   switch(type) {
     case GOOGLE:
       ['kind',
@@ -60,7 +62,6 @@ export const filterIntoSchema = (dbEvent, type) => {
       return dbEvent;
     case OUTLOOK:
       ['@odata.etag'].forEach(e => delete dbEvent[e]);
-      var schemaCastedDbObject = {};
 
       schemaCastedDbObject.id = md5(dbEvent.id);
       schemaCastedDbObject.originalId = dbEvent.id;
@@ -97,6 +98,47 @@ export const filterIntoSchema = (dbEvent, type) => {
       // schemaCastedDbObject.source = dbEvent.responseStatus;
       schemaCastedDbObject.providerType = OUTLOOK;
 
+      return schemaCastedDbObject;
+    case EXCHANGE:
+      schemaCastedDbObject.id = md5(dbEvent.Id.UniqueId);
+      schemaCastedDbObject.originalId = dbEvent.Id.UniqueId;
+      schemaCastedDbObject.htmlLink = dbEvent.WebClientReadFormQueryString;
+      schemaCastedDbObject.status = dbEvent.IsCancelled === undefined ? 'confirmed' : 'cancelled';
+      schemaCastedDbObject.created = dbEvent.DateTimeCreated.getMomentDate().format("YYYY-MM-DDTHH:mm:ssZ");
+      schemaCastedDbObject.updated = dbEvent.LastModifiedTime.getMomentDate().format("YYYY-MM-DDTHH:mm:ssZ");
+      schemaCastedDbObject.summary = dbEvent.Subject;
+
+      // schemaCastedDbObject.description = dbEvent.Body === undefined ? "" : dbEvent.Body; // IDK WHY BODY HAS ISSUE. WHAT.
+
+      schemaCastedDbObject.location = dbEvent.Location === null ? "" : dbEvent.location;
+      // schemaCastedDbObject.creator = dbEvent.Organizer.address;
+
+      schemaCastedDbObject.organizer = { email: dbEvent.Organizer.address, displayName: dbEvent.Organizer.name };
+      // schemaCastedDbObject.organizer = { email: dbEvent.Organizer.name, displayName: dbEvent.Organizer.name }; // This makes no sense, address does not exist in the organizer object, LOL
+      
+      schemaCastedDbObject.start = { dateTime: dbEvent.Start.getMomentDate().format("YYYY-MM-DDTHH:mm:ssZ") };
+      schemaCastedDbObject.end = { dateTime: dbEvent.End.getMomentDate().format("YYYY-MM-DDTHH:mm:ssZ") };
+      // schemaCastedDbObject.endTimeUnspecified = dbEvent.responseStatus;
+      // schemaCastedDbObject.recurrence = dbEvent.Recurrence();      // Need to write converted from microsoft EWS to some format.
+      // schemaCastedDbObject.recurringEventId = dbEvent.ICalRecurrenceId;
+      // schemaCastedDbObject.originalStartTime = { dateTime: dbEvent.originalStartTime, timezone: dbEvent.originalStartTimeZone };
+      // schemaCastedDbObject.transparency = dbEvent.responseStatus;
+      // schemaCastedDbObject.visibility = "default";
+      schemaCastedDbObject.iCalUID = dbEvent.ICalUid;
+      // schemaCastedDbObject.sequence = dbEvent.responseStatus;
+      // schemaCastedDbObject.attendees = dbEvent.attendees;
+
+      // schemaCastedDbObject.anyoneCanAddSelf = dbEvent.responseStatus;
+      // schemaCastedDbObject.guestsCanInviteOthers = dbEvent.responseStatus;
+      // schemaCastedDbObject.guestsCanModify = dbEvent.responseStatus;
+      // schemaCastedDbObject.guestsCanSeeOtherGuests = dbEvent.responseStatus;
+      // schemaCastedDbObject.privateCopy = dbEvent.responseStatus;
+      // schemaCastedDbObject.locked = dbEvent.responseStatus;
+      schemaCastedDbObject.allDay = dbEvent.IsAllDayEvent;
+
+      // schemaCastedDbObject.calenderId = dbEvent.responseStatus;
+      // schemaCastedDbObject.source = dbEvent.responseStatus;
+      schemaCastedDbObject.providerType = EXCHANGE;
       return schemaCastedDbObject;
     default:
       console.log("Provider " + type + " not available");

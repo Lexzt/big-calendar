@@ -3,6 +3,8 @@ import { withRouter } from 'react-router-dom';
 import {
   beginGoogleAuth,
   beginOutlookAuth,
+  beginExchangeAuth,
+  successExchangeAuth,
 } from '../actions/auth';
 import {
   retrieveStoreEvents
@@ -10,6 +12,7 @@ import {
 import {
   beginGetGoogleEvents,
   beginGetOutlookEvents,
+  beginGetExchangeEvents,
   beginDeleteEvent,
   clearAllEvents,
 } from '../actions/events';
@@ -39,6 +42,9 @@ const mapDispatchToProps = dispatch => ({
   beginGetOutlookEvents: (resp) => dispatch(beginGetOutlookEvents(resp)),
   beginOutlookAuth: () => dispatch(beginOutlookAuth()),
   
+  beginGetExchangeEvents: (resp) => dispatch(beginGetExchangeEvents(resp)),
+  beginExchangeAuth: (user) => dispatch(beginExchangeAuth(user)),
+
   retrieveStoreEvents: (providerType) => dispatch(retrieveStoreEvents(providerType)),
   beginDeleteEvent: (id) => dispatch(beginDeleteEvent(id)),
 
@@ -46,6 +52,7 @@ const mapDispatchToProps = dispatch => ({
 
   onStartGetGoogleAuth: (user) => dispatch(successGoogleAuth(user)),
   onStartGetOutlookAuth: (user) => dispatch(successOutlookAuth(user)),
+  onStartGetExchangeAuth: (user) => dispatch(successExchangeAuth(user)),
 
   onExpiredOutlook: (user) => dispatch(expiredOutlookAuth(user)),
   onExpiredGoogle: (user) => dispatch(expiredGoogleAuth(user)),

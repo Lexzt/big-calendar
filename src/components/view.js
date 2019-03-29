@@ -8,10 +8,7 @@ import getDb from '../db';
 import * as ProviderTypes from '../utils/constants';
 import SignupSyncLink from './SignupSyncLink';
 
-// import { GOOGLE_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_SCOPE } from '../utils/client/google';
-
-// import { transport, Credentials, createAccount } from "dav/dav";
-
+// import { ExchangeVersion, ExchangeService, DateTime, WebCredentials, Uri, WellKnownFolderName, CalendarView, SearchFilter, FolderSchema, FolderView, ExchangeCredentials } from 'ews-javascript-api';
 
 const localizer = BigCalendar.momentLocalizer(moment);
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
@@ -34,9 +31,14 @@ export default class View extends React.Component {
       currentEvent: [{}] ,
       isShowEvent: false,
       currentEventStartDateTime: '',
-      currentEventEndDateTime: ''
+      currentEventEndDateTime: '',
+      exchangeEmail: '',
+      exchangePwd: ''
     };
     let incrementalSync;
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentWillMount() {
@@ -45,56 +47,54 @@ export default class View extends React.Component {
   }
 
   async componentDidMount() {
-    // // This doesn't work fml. LOL
-    // console.log("here",transport);
-    // var xhr = new transport.Basic(
-    //   new Credentials({
-    //     username: 'fongzhizhong',
-    //     password: 'WKPFd2ScEHBv7qY'
-    //   })
-    // );
-    // console.log(xhr);
-    // createAccount({ server: 'https://caldav.calendar.yahoo.com', xhr: xhr}).then(function(account) {
-    //   account.calendars.forEach((function(calendar) {
-    //     console.log('Found calendar named ' + calendar.displayName);
-    //     // etc.
-    //   }));
+    //// Code is here to test for when china team gets back!!
+    // let exch = new ExchangeService();
+    // exch.Credentials = new ExchangeCredentials(action.payload.email, action.payload.password);
+    // exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
+
+    // var view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+    // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+    //   console.log(response.Items);
+    // }, function (error) {
+    //   console.log(error);
     // });
 
 
     const db = await getDb();
     db.persons.find().exec().then(providerUserData => {
       providerUserData.map((singleProviderUserData) => {
+        if(singleProviderUserData.providerType === ProviderTypes.EXCHANGE){ // Might wanna rethink this approach as it might be good for some clean up here. 
+          this.props.onStartGetExchangeAuth(this.filterUserOnStart(singleProviderUserData,ProviderTypes.EXCHANGE));
+        } else {
+          var now = new Date().getTime();
+          var isExpired = now > parseInt(singleProviderUserData.accessTokenExpiry);
 
-        var now = new Date().getTime();
-        // var now = 1552437629100;
-        var isExpired = now > parseInt(singleProviderUserData.accessTokenExpiry);
+          // console.log(singleProviderUserData,this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
+          // console.log(now,singleProviderUserData.accessTokenExpiry,isExpired,providerUserData);
+          // console.log(singleProviderUserData.providerType + " is " + (isExpired ? "expired!" : "not expired!"));
 
-        // console.log(singleProviderUserData,this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
-        // console.log(now,singleProviderUserData.accessTokenExpiry,isExpired,providerUserData);
-        // console.log(singleProviderUserData.providerType + " is " + (isExpired ? "expired!" : "not expired!"));
-
-        if(!isExpired){
-          switch (singleProviderUserData.providerType) {
-            case ProviderTypes.GOOGLE:
-              this.props.onStartGetGoogleAuth(this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
-              break;
-            case ProviderTypes.OUTLOOK:
-              this.props.onStartGetOutlookAuth(this.filterUserOnStart(singleProviderUserData,ProviderTypes.OUTLOOK));
-              break;
-            default:
-              break;
-          }
-        }else{
-          switch (singleProviderUserData.providerType) {
-            case ProviderTypes.GOOGLE:
-              this.props.onExpiredGoogle(this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
-              break;
-            case ProviderTypes.OUTLOOK:
-              this.props.onExpiredOutlook(this.filterUserOnStart(singleProviderUserData,ProviderTypes.OUTLOOK));
-              break;
-            default:
-              break;
+          if(!isExpired){
+            switch (singleProviderUserData.providerType) {
+              case ProviderTypes.GOOGLE:
+                this.props.onStartGetGoogleAuth(this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
+                break;
+              case ProviderTypes.OUTLOOK:
+                this.props.onStartGetOutlookAuth(this.filterUserOnStart(singleProviderUserData,ProviderTypes.OUTLOOK));
+                break;
+              default:
+                break;
+            }
+          }else{
+            switch (singleProviderUserData.providerType) {
+              case ProviderTypes.GOOGLE:
+                this.props.onExpiredGoogle(this.filterUserOnStart(singleProviderUserData,ProviderTypes.GOOGLE));
+                break;
+              case ProviderTypes.OUTLOOK:
+                this.props.onExpiredOutlook(this.filterUserOnStart(singleProviderUserData,ProviderTypes.OUTLOOK));
+                break;
+              default:
+                break;
+            }
           }
         }
       });
@@ -116,6 +116,11 @@ export default class View extends React.Component {
   authorizeGoogleCodeRequest = () => {
     this.props.beginGoogleAuth();
   }
+
+  authorizeExchangeCodeRequest = (user,pwd) => {
+    this.props.beginExchangeAuth(user,pwd);
+  }
+
   // Calendar Event Functions
 
   moveEventList = ({ event, start, end }) => {
@@ -157,6 +162,18 @@ export default class View extends React.Component {
     });
   }
 
+
+  // Exchange login handling here first, will move it in the future!!
+  handleChange = (event) => {
+    this.setState({[event.target.name]: event.target.value});
+  }
+
+  handleSubmit = async (e) => {
+    e.preventDefault();
+    this.authorizeExchangeCodeRequest({ username: this.state.exchangeEmail, password: this.state.exchangePwd} );
+  }
+  // Exchange login handling here first, will move it in the future!!
+
   // This filter user is used when the outlook first creates the object.
   // It takes the outlook user object, and map it to the common schema defined in db/person.js
   filterUserOnStart = (rxDoc, providerType) => {
@@ -168,6 +185,7 @@ export default class View extends React.Component {
         providerType: providerType,
         accessToken: rxDoc.accessToken,
         accessTokenExpiry: rxDoc.accessTokenExpiry,
+        password: rxDoc.password,
       }
     };
   };
@@ -231,6 +249,8 @@ export default class View extends React.Component {
         case ProviderTypes.OUTLOOK:
           providerFunc = (() => this.authorizeOutLookCodeRequest());
           break;
+        case ProviderTypes.EXCHANGE:
+          break;
         default:
           console.log('Provider not accounted for!!');
           break;
@@ -245,32 +265,55 @@ export default class View extends React.Component {
 
     return (
       <div>
+        <form
+          onSubmit={this.handleSubmit}
+        >
+          <input
+            type="text"
+            name="exchangeEmail"
+            value={this.state.exchangeEmail} onChange={this.handleChange} 
+            placeholder="Exchange Email"
+          />
+          <input
+            type="text"
+            name="exchangePwd"
+            value={this.state.exchangePwd} onChange={this.handleChange} 
+            placeholder="Exchange Password"
+          />
 
-      {/* this is for out of sync tokens. */}
-      {providers}
-      <a className="waves-effect waves-light btn"
+          <input type="submit" value="Submit"></input>
+        </form>
+
+        {/* this is for out of sync tokens. */}
+        {providers}
+        <a className="waves-effect waves-light btn"
           onClick={() => this.authorizeGoogleCodeRequest()}>
-       <i className="material-icons left">cloud</i>Sign in with Google</a>
-       <a className="waves-effect waves-light btn"
-           onClick={() => this.authorizeOutLookCodeRequest()}>
-        <i className="material-icons left">cloud</i>Sign in with Outlook</a>
+          <i className="material-icons left">cloud</i>Sign in with Google</a>
+        <a className="waves-effect waves-light btn"
+          onClick={() => this.authorizeOutLookCodeRequest()}>
+          <i className="material-icons left">cloud</i>Sign in with Outlook</a>
         <a className="waves-effect waves-light btn"
         // onClick={() => this.props.beginGetGoogleEvents()}>
 
-        // This is suppose to allow us to sync multiple user per single provider in the future!!
-        // Currently, due to no UI, I am hardcoding it to a single instance. But once we get the
-        // UI up and running for choosing which user events you want to get, this will be amazing
-        // Note: This is the same for the following button, which pulls outlook events.
+          // This is suppose to allow us to sync multiple user per single provider in the future!!
+          // Currently, due to no UI, I am hardcoding it to a single instance. But once we get the
+          // UI up and running for choosing which user events you want to get, this will be amazing
+          // Note: This is the same for the following button, which pulls outlook events.
 
-        // Okay, debate later, coz idk how to deal with it when the user signs in, to update this state here.
-            onClick={() => this.props.beginGetGoogleEvents(this.props.providers["GOOGLE"][0])}>
-         <i className="material-icons left">cloud_download</i>Get Google Events</a>
-         <a className="waves-effect waves-light btn"
-             onClick={() => this.props.beginGetOutlookEvents(this.props.providers["OUTLOOK"][0])}>
+          // Okay, debate later, coz idk how to deal with it when the user signs in, to update this state here.
+          onClick={() => this.props.beginGetGoogleEvents(this.props.providers["GOOGLE"][0])}>
+          <i className="material-icons left">cloud_download</i>Get Google Events</a>
+        <a className="waves-effect waves-light btn"
+          onClick={() => this.props.beginGetOutlookEvents(this.props.providers["OUTLOOK"][0])}>
           <i className="material-icons left">cloud_download</i>Get Outlook Events</a>
-          <a className="waves-effect waves-light btn"
-              onClick={() => this.props.clearAllEvents()}>
-           <i className="material-icons left">close</i>Clear all Events</a>      </div>
+
+        <a className="waves-effect waves-light btn"
+          onClick={() => this.props.beginGetExchangeEvents(this.props.providers["EXCHANGE"][0])}>
+          <i className="material-icons left">cloud_download</i>Get Exchange Events</a>
+
+        <a className="waves-effect waves-light btn"
+          onClick={() => this.props.clearAllEvents()}>
+          <i className="material-icons left">close</i>Clear all Events</a>      </div>
     );
   }
 

@@ -9,6 +9,7 @@ import { GET_EVENTS_BEGIN,
   CLEAR_ALL_EVENTS,
   EDIT_EVENT_BEGIN,
   getEventsFailure,
+  GET_EXCHANGE_EVENTS_BEGIN,
 
 } from '../actions/events';
 // import { duplicateAction } from '../actions/db/events';
@@ -29,6 +30,10 @@ import * as Providers from '../utils/constants';
 
 import { Client } from '@microsoft/microsoft-graph-client';
 import { getUserEvents,getAccessToken,filterEventToOutlook } from '../utils/client/outlook';
+
+import { ExchangeService, DateTime, Uri, WellKnownFolderName, CalendarView, ExchangeCredentials } from 'ews-javascript-api';
+
+import { clearAllEventsSuccess } from '../actions/events';
 
 import * as RxDB from 'rxdb';
 
@@ -215,12 +220,49 @@ export const beginGetOutlookEventsEpics = action$ => action$.pipe(
 // ------------------------------------ OUTLOOK ------------------------------------ //
 
 
+// ------------------------------------ EXCHANGE ------------------------------------ //
+export const beginGetExchangeEventsEpics = action$ => action$.pipe(
+  ofType(GET_EXCHANGE_EVENTS_BEGIN),
+  mergeMap(action => 
+    from(new Promise((resolve, reject) => { 
+      if(action.payload === undefined) {
+        reject(getEventsFailure("Exchange user undefined!!"));
+      }
+
+      let exch = new ExchangeService();
+      exch.Credentials = new ExchangeCredentials(action.payload.email, action.payload.password);
+      exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
+
+      // Cap of 2 years per pull. 
+      // console.log(DateTime.MinValue);
+      // Dk how should I deal with MinValue or pull till when. Interesting problem. Document it later.
+      // For now, I am pulling 2 years back. 
+      var view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+        resolve(response.Items);
+      }, function (error) {
+        console.log(error);
+      });
+    })).pipe(
+      map((resp) => {
+        return getEventsSuccess(resp, Providers.EXCHANGE);
+      }),
+      catchError((error) => {
+        return of(error);
+      })
+    )
+  )
+)
+// ------------------------------------ EXCHANGE ------------------------------------ //
+
+
 // ------------------------------------ GENERAL ------------------------------------ //
 export const clearAllEventsEpics = action$ => action$.pipe(
   ofType(CLEAR_ALL_EVENTS),
   map(() => {
     localStorage.clear();
     RxDB.removeDatabase('eventsdb', 'idb');
+    return clearAllEventsSuccess();
   })
 );
 // ------------------------------------ GENERAL ------------------------------------ //
