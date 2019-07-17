@@ -46,6 +46,7 @@ export default class AddEvent extends Component {
   componentWillMount() {
     const startDateParsed = moment(this.props.match.params.start).format("YYYY-MM-DDThh:mm a");
     const endDateParsed = moment(this.props.match.params.end).format("YYYY-MM-DDThh:mm a");
+    console.log(this.props.match.params.end);
     const startDateParsedInUTC = this.processStringForUTC(startDateParsed);
     const endDateParsedInUTC = this.processStringForUTC(endDateParsed);
     console.log(moment(startDateParsedInUTC).format() + " " + endDateParsedInUTC);
@@ -82,6 +83,7 @@ export default class AddEvent extends Component {
 
       this.props.postEventBegin({
         'summary': this.state.title,
+        'description': this.state.desc,
         'start': {
           'dateTime' : moment(this.state.startParsed).format(),
           'timezone' : 'America/Los_Angeles'

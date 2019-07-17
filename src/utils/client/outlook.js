@@ -6,7 +6,7 @@ import * as ProviderTypes from '../constants';
 const OUTLOOK_APPLICATION_ID = '8f81c6fd-0bf6-4b44-9c6a-32fe75795c4d';
 const OUTLOOK_OAUTH_ENDPOINT = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?`;
 const OUTLOOK_SCOPES = 'openid profile User.Read Calendars.Read Calendars.Read.Shared Calendars.ReadWrite Calendars.ReadWrite.Shared';
-const REDIRECT_URI = 'http://localhost:3000/outlook-redirect';
+const REDIRECT_URI = 'http://localhost:1212/outlook-redirect';
 
 const params = (data) => {
   return Object.keys(data).map(key => `${key}=${encodeURIComponent(data[key])}`).join('&');

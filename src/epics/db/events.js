@@ -67,6 +67,7 @@ export const storeEventsEpic = action$ => action$.pipe(
 export const beginStoreEventsEpic = action$ => action$.pipe(
   ofType(POST_EVENT_SUCCESS, GET_EVENTS_SUCCESS),
   map((action) => {
+    // console.log(action.payload);
     return beginStoringEvents(action.payload);
   })
 );
@@ -84,13 +85,14 @@ const storeEvents = async (payload) => {
   const db = await getDb();
   const addedEvents = [];
   const data = payload.data;
+  // console.log(payload);
   for(let dbEvent of data) {
     // #TO-DO, we need to figure out how to handle recurrence, for now, we ignore
     if(dbEvent.recurringEventId !== undefined && dbEvent.recurringEventId !== null) {
       continue;
     }
 
-    let filteredEvent = Providers.filterIntoSchema(dbEvent, payload.providerType);
+    let filteredEvent = Providers.filterIntoSchema(dbEvent, payload.providerType, payload.owner);
     filteredEvent['providerType'] = payload.providerType;
     try {
       await db.events.upsert(filteredEvent);
@@ -98,6 +100,7 @@ const storeEvents = async (payload) => {
     catch(e) {
       return e;
     }
+
     // Adding filtered event coz if I added dbEvent, it will result it non compatability with outlook objects.
     addedEvents.push(filteredEvent);
   }

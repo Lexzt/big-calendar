@@ -31,12 +31,16 @@ import * as Providers from '../utils/constants';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { getUserEvents,getAccessToken,filterEventToOutlook } from '../utils/client/outlook';
 
-import { ExchangeService, DateTime, Uri, WellKnownFolderName, CalendarView, ExchangeCredentials } from 'ews-javascript-api';
-
 import { clearAllEventsSuccess } from '../actions/events';
 
 import * as RxDB from 'rxdb';
 
+import { getAllEvents,createEvent } from '../utils/client/exchange';
+
+import { ExchangeService, Uri, ExchangeCredentials, Appointment, MessageBody, DateTime, WellKnownFolderName, SendInvitationsMode, Item, PropertySet, ItemSchema } from 'ews-javascript-api';
+import moment from 'moment';
+import getDb from '../db'
+import * as ProviderTypes from '../utils/constants'
 
 export const beginGetEventsEpics = action$ => action$.pipe(
   ofType(GET_EVENTS_BEGIN),
@@ -88,6 +92,11 @@ export const beginPostEventEpics = action$ => action$.pipe(
         map(resp => postEventSuccess([resp],action.payload.providerType)),
         catchError(error => apiFailure(error))
       );
+    } else if(action.payload.providerType === Providers.EXCHANGE) {
+      return from(postEventsExchange(action.payload)).pipe(
+        map(resp => postEventSuccess([resp],action.payload.providerType)),
+        catchError(error => apiFailure(error))
+      );
     }
   })
 );
@@ -134,6 +143,30 @@ const postEventsOutlook = (payload) => {
     });
   });
 };
+
+const postEventsExchange = (payload) => {
+  return new Promise((resolve, reject) => {
+    let exch = new ExchangeService();
+    exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
+    exch.Credentials = new ExchangeCredentials(payload.auth.email, payload.auth.password);
+
+    let newEvent = new Appointment(exch);
+
+    newEvent.Subject = payload.data.summary;
+    newEvent.Body = new MessageBody(payload.data.description);
+    newEvent.Start = new DateTime(moment.tz(payload.data.start.dateTime,payload.data.start.timezone));
+    newEvent.End = new DateTime(moment.tz(payload.data.end.dateTime,payload.data.end.timezone));
+    newEvent.Save(WellKnownFolderName.Calendar,SendInvitationsMode.SendToAllAndSaveCopy).then(
+      async () => {
+        // var item = await Item.Bind(exch, newEvent.Id, new PropertySet(ItemSchema.Subject));
+        const db = await getDb();
+        const doc = await db.events.upsert(ProviderTypes.filterIntoSchema(newEvent,ProviderTypes.EXCHANGE, payload.auth.email));
+        resolve(newEvent);
+      }, 
+      (error) => reject(error)
+      );
+  })
+}
 
 const deleteEvent = async (id) => {
   await loadClient();
@@ -197,7 +230,7 @@ export const beginGetOutlookEventsEpics = action$ => action$.pipe(
         reject(getEventsFailure("Outlook user undefined!!"));
       }
 
-      // console.log("Outlook Performing full sync", action);
+      console.log("Outlook Performing full sync", action);
       getUserEvents(action.payload.accessToken, action.payload.accessTokenExpiry, (events, error) => {
         if(error) {
           console.error(error);
@@ -209,7 +242,7 @@ export const beginGetOutlookEventsEpics = action$ => action$.pipe(
     }))
       .pipe(
         map((resp) => {
-          return getEventsSuccess(resp, Providers.OUTLOOK);
+          return getEventsSuccess(resp, Providers.OUTLOOK, action.payload.email);
         }),
         catchError((error) => {
           return of(error);
@@ -224,28 +257,15 @@ export const beginGetOutlookEventsEpics = action$ => action$.pipe(
 export const beginGetExchangeEventsEpics = action$ => action$.pipe(
   ofType(GET_EXCHANGE_EVENTS_BEGIN),
   mergeMap(action => 
-    from(new Promise((resolve, reject) => { 
+    from(new Promise(async (resolve, reject) =>  { 
       if(action.payload === undefined) {
         reject(getEventsFailure("Exchange user undefined!!"));
       }
 
-      let exch = new ExchangeService();
-      exch.Credentials = new ExchangeCredentials(action.payload.email, action.payload.password);
-      exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
-
-      // Cap of 2 years per pull. 
-      // console.log(DateTime.MinValue);
-      // Dk how should I deal with MinValue or pull till when. Interesting problem. Document it later.
-      // For now, I am pulling 2 years back. 
-      var view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
-      exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
-        resolve(response.Items);
-      }, function (error) {
-        console.log(error);
-      });
+      resolve(getAllEvents(action.payload.email, action.payload.password, "https://outlook.office365.com/Ews/Exchange.asmx"));
     })).pipe(
       map((resp) => {
-        return getEventsSuccess(resp, Providers.EXCHANGE);
+        return getEventsSuccess(resp, Providers.EXCHANGE, action.payload.email);
       }),
       catchError((error) => {
         return of(error);

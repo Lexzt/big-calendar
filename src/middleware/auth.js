@@ -9,6 +9,8 @@ import * as Providers from '../utils/constants';
 import * as AuthActionTypes from '../actions/auth';
 import * as DbActionTypes from '../actions/db/events';
 
+import * as Msal from 'msal';
+
 let GoogleAuth = '';
 
 const handleAuthClick = (auth) => {
@@ -133,8 +135,35 @@ export const authBeginMiddleware = store => next => action => {
     // //   }
     // // });
   } else if (action.type === AuthActionTypes.BEGIN_OUTLOOK_AUTH) {
-    const url = buildAuthUrl();
-    window.open(url,'_self',false);
+    // const url = buildAuthUrl();
+    // window.open(url,'_self',false);
+
+    var applicationConfig = {
+      clientID: 'your_client_id'
+    };
+
+    var userAgentApplication = new Msal.UserAgentApplication(applicationConfig.clientID, null, tokenReceivedCallback);
+
+    //callback function for redirect flows
+    function tokenReceivedCallback(errorDesc, token, error, tokenType) {
+        if (token) {
+          console.log(token);
+        }
+        else {
+          console.log(error + ":" + errorDesc);
+        }
+    }
+
+    var graphScopes = ["user.read", "mail.send"];
+
+    userAgentApplication.loginPopup(graphScopes).then(function (idToken) {
+        //login success
+        console.log(idToken);
+    }, function (error) {
+        //login failure
+        console.log(error);
+    });
+
   } else if (action.type === AuthActionTypes.BEGIN_EXCHANGE_AUTH) {
     let exch = new ExchangeService();
     exch.Credentials = new WebCredentials(action.payload.username, action.payload.password);
@@ -150,7 +179,8 @@ export const authBeginMiddleware = store => next => action => {
           user
         }
       });
-    }, () => {
+    }, (error) => {
+      console.log(error);
       next({
         type: AuthActionTypes.FAIL_EXCHANGE_AUTH,
       });
@@ -192,7 +222,7 @@ export const authSuccessMiddleware = store => next => action => {
   }
   if(action.type === AuthActionTypes.FAIL_EXCHANGE_AUTH) {
     next({
-      type: AuthActionTypes.RETRY_OUTLOOK_AUTH
+      type: AuthActionTypes.RETRY_EXCHANGE_AUTH,
     });
   }
   return next(action);

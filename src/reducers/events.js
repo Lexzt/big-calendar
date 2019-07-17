@@ -12,6 +12,7 @@ const initialState = {
 const mergeEvents = (oldEvents, newItems) => {
   let oldIds = oldEvents.map(item => item.id);
   let newPayload = [...oldEvents];
+  // console.log(oldEvents, newItems);
   
   for(let newItem of newItems) {
     if(!oldIds.includes(newItem.id)) {
@@ -26,10 +27,12 @@ export default function eventsReducer(state = initialState, action) {
     case RETRIEVE_STORED_EVENTS:
       return Object.assign({}, state, { providerType: action.providerType });
     case UPDATE_STORED_EVENTS:
+      // debugger;
       // return Object.assign({}, state, { calEvents: action.payload });
       // return Object.assign({}, state, { calEvents: state.calEvents.concat(action.payload) });
       return Object.assign({}, state, { calEvents: mergeEvents(state.calEvents, action.payload) });
     case SUCCESS_STORED_EVENTS: {
+      // debugger;
       let newEvents = mergeEvents(state.calEvents, action.payload);
       return Object.assign({}, state, { calEvents: newEvents });
     }

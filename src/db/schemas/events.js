@@ -240,6 +240,12 @@ export default {
       "type": "string"
     },
     // ----------------------------------------------- //
+    "owner": {    // email that it belongs to as exchange users might not have email
+      "type": "string"
+    },
+    "incomplete": {   // incomplete is a flag to mark that it was just created and might not be complete
+      "type": "boolean"
+    }
   },
   "required": ["end", "start"]
 };

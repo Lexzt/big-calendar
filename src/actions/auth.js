@@ -40,6 +40,7 @@ export const expiredOutlookAuth = (user) => ({
 export const BEGIN_EXCHANGE_AUTH = 'BEGIN_EXCHANGE_AUTH';
 export const SUCCESS_EXCHANGE_AUTH = 'SUCCESS_EXCHANGE_AUTH';
 export const FAIL_EXCHANGE_AUTH = 'FAIL_EXCHANGE_AUTH';
+export const RETRY_EXCHANGE_AUTH = 'RETRY_EXCHANGE_AUTH';
 
 export const beginExchangeAuth = (user) => ({ 
   type: BEGIN_EXCHANGE_AUTH,

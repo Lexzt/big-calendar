@@ -3,8 +3,14 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import EditEvent from '../components/editEvent';
 
+const mapStateToProps = state => {
+  return {
+    providers: state.auth.providers,
+  };
+};
+
 const mapDispatchToProps = dispatch => ({
-  editEventBegin: (id, eventObject) => dispatch(editEventBegin(id, eventObject))
+  editEventBegin: (id, eventObject, providerType) => dispatch(editEventBegin(id, eventObject, providerType))
 });
 
-export default connect(mapDispatchToProps)(withRouter(EditEvent));
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(EditEvent));

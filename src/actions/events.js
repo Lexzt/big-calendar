@@ -55,11 +55,12 @@ export const getEventsFailure = (error) => ({
   }
 });
 
-export const getEventsSuccess = (response, providerType) => ({
+export const getEventsSuccess = (response, providerType, owner) => ({
   type: GET_EVENTS_SUCCESS,
   payload: {
     data: response,
     providerType: providerType,
+    owner: owner,       // owner is needed as there are chances that the email is not readable for EXCHANGE servers.
   }
 });
 
@@ -100,16 +101,17 @@ export const getOutlookEventsSuccess = (response) => ({
 // ---------------------- OUTLOOK ---------------------- //
 
 // ---------------------- EDIT EVENTS ---------------------- //
-export const editEventBegin = (id, eventObject) => ({
+export const editEventBegin = (id, eventObject, providerType) => ({
   type: EDIT_EVENT_BEGIN,
   payload: {
     id: id,
-    data: eventObject
+    data: eventObject,
+    providerType: providerType
   }
 })
 
 export const editEventSuccess = (resp) => ({
-  type: EDIT_EVENT_BEGIN,
+  type: EDIT_EVENT_SUCCESS,
   payload: {
     resp
   }

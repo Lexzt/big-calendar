@@ -8,7 +8,7 @@ import getDb from '../db';
 import * as ProviderTypes from '../utils/constants';
 import SignupSyncLink from './SignupSyncLink';
 
-// import { ExchangeVersion, ExchangeService, DateTime, WebCredentials, Uri, WellKnownFolderName, CalendarView, SearchFilter, FolderSchema, FolderView, ExchangeCredentials } from 'ews-javascript-api';
+import { ExchangeVersion, ExchangeService, DateTime, WebCredentials, Uri, WellKnownFolderName, CalendarView, SearchFilter, FolderSchema, FolderView, ExchangeCredentials, WindowsLiveCredentials, ClientCertificateCredentials, PartnerTokenCredentials, WSSecurityBasedCredentials, X509CertificateCredentials, TokenCredentials, OAuthCredentials, CalendarFolder, Appointment, SendInvitationsMode, ConflictResolutionMode, SendInvitationsOrCancellationsMode, ItemId, FolderId, Folder, Mailbox, ItemView } from 'ews-javascript-api';
 
 const localizer = BigCalendar.momentLocalizer(moment);
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
@@ -32,8 +32,8 @@ export default class View extends React.Component {
       isShowEvent: false,
       currentEventStartDateTime: '',
       currentEventEndDateTime: '',
-      exchangeEmail: '',
-      exchangePwd: ''
+      exchangeEmail: 'e0176993@u.nus.edu',
+      exchangePwd: 'Ggrfw4406@nus41'
     };
     let incrementalSync;
 
@@ -47,18 +47,139 @@ export default class View extends React.Component {
   }
 
   async componentDidMount() {
-    //// Code is here to test for when china team gets back!!
-    // let exch = new ExchangeService();
-    // exch.Credentials = new ExchangeCredentials(action.payload.email, action.payload.password);
-    // exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
+    let exch = new ExchangeService();
+    exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
 
-    // var view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
-    // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
-    //   console.log(response.Items);
-    // }, function (error) {
-    //   console.log(error);
-    // });
+    let userName = "e0176993@u.nus.edu";
+    let password = "Ggrfw4406@nus41";
 
+    exch.Credentials = new ExchangeCredentials(userName, password);
+
+    // try {
+    //   var id = new FolderId(WellKnownFolderName.Calendar, new Mailbox(userName));
+    //   let targetFolder = Folder.Bind(exch, id).then(
+    //     resp => console.log(resp),
+    //     error => console.log("Inside error:", error)
+    //   );
+    // } catch (e){
+    //   console.log("Error: ",e);
+    // }
+
+    // // -------------------------------- This code test the finding of multiple calendars --------------------------------
+    // try {
+    //   exch.FindFolders(WellKnownFolderName.Calendar, new FolderView(100)).then(
+    //     // resp => resp.folders.map(folder => console.log(folder)),
+    //     resp => resp.folders.map(folder => { 
+    //       folder.FindItems(new ItemView(folder.TotalCount > 0 ? folder.TotalCount : 1)).then(
+    //         resp => { 
+    //           console.log(folder.Id.UniqueId, folder.DisplayName, resp.items, resp.totalCount);
+
+    //           // Here, we need to do some processing so that it can update on success, but not an issue really. 
+    //           // I can parse the information into the calendar, but like, how to differciate it is a different question. 
+    //         },
+    //         err => console.log(err)
+    //       )
+    //     }),
+    //     err => console.log(err)
+    //   )
+      
+    // } catch (e) {
+    //   console.log("e: ", e);
+    // }
+    // // -------------------------------- This code test the finding of multiple calendars --------------------------------
+
+    /* 
+      TESTING OF LOGGING IN WITH ALL SERVICES. 
+      // let exch = new ExchangeService();
+      // exch.Url = new Uri("https://outlook.office365.com/Ews/Exchange.asmx");
+
+      // // let userName = "shuhao";
+      // // let password = "Edo13579";aa
+
+      // let userName = "e0176993@u.nus.edu";
+      // let password = "Ggrfw4406@nus41";
+
+      // // exch.Credentials = new ClientCertificateCredentials(userName, password);
+      // // var view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      // //   console.log(response.Items);
+      // // }, function (error) {
+      // //   console.log(error);
+      // // });
+
+      // exch.Credentials = new ExchangeCredentials(userName, password);
+      // var a = moment.unix(0).add(23, "month");
+      // var prev = moment.unix(0);;
+      // var b = moment.unix(1893459600);      // 1/1/2099 1am , just some random super large time.
+
+      // var view;
+      // var exchangeEvents = [];
+
+      // function loopEvents (response) {
+      //   exchangeEvents = exchangeEvents.concat(response.Items);
+      // }
+
+      // console.log("Started exchange sync");
+      // // If you want an exclusive end date (half-open interval)
+      // for (var m = moment(a); m.isBefore(b); m.add(23, "month")) {
+      //   view = new CalendarView(new DateTime(prev), new DateTime(m));
+      //   await exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => loopEvents(response), function (error) {
+      //     console.log(error);
+      //   });
+      //   prev = prev.add(23, "month")
+      // }
+      // console.log("Finished exchange sync");
+      // console.log(exchangeEvents);
+
+      // exch.Credentials = new PartnerTokenCredentials(userName, password);
+      // view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      //   console.log(response.Items);
+      // }, function (error) {
+      //   console.log(error);
+      // });
+
+      // exch.Credentials = new TokenCredentials(userName, password);
+      // view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      //   console.log(response.Items);
+      // }, function (error) {
+      //   console.log(error);
+      // });
+
+      // exch.Credentials = new WSSecurityBasedCredentials(userName, password);
+      // view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      //   console.log(response.Items);
+      // }, function (error) {
+      //   console.log(error);
+      // });
+
+      // exch.Credentials = new WebCredentials(userName, password);
+      // view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      //   console.log(response.Items);
+      // }, function (error) {
+      //   console.log(error);
+      // });
+
+      // exch.Credentials = new WindowsLiveCredentials(userName, password);
+      // view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      //   console.log(response.Items);
+      // }, function (error) {
+      //   console.log(error);
+      // });
+
+
+      // exch.Credentials = new X509CertificateCredentials(userName, password);
+      // var view = new CalendarView(DateTime.Now.Add(-23, "month"), DateTime.Now);
+      // exch.FindAppointments(WellKnownFolderName.Calendar, view).then((response) => {
+      //   console.log(response.Items);
+      // }, function (error) {
+      //   console.log(error);
+      // });
+    */
 
     const db = await getDb();
     db.persons.find().exec().then(providerUserData => {
@@ -122,7 +243,6 @@ export default class View extends React.Component {
   }
 
   // Calendar Event Functions
-
   moveEventList = ({ event, start, end }) => {
     const events = this.props.events;
 
@@ -146,7 +266,7 @@ export default class View extends React.Component {
   }
 
   handleSelectDate = ({ start, end }) => {
-    this.props.history.push(`/${start}/$${end}`);
+    this.props.history.push(`/${start}/${end}`);
   }
 
   editEvent = () => {
